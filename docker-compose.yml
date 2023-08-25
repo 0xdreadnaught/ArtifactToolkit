@@ -17,13 +17,13 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./certs:/etc/nginx/certs
+      - ./nginx-start.sh:/nginx-start.sh # Add this line
     ports:
       - "25002:80"
       - "25003:443"
     depends_on:
       - joplin-server
-    command: /bin/sh -c "if [ ! -f /etc/nginx/certs/nginx.crt ]; then openssl req -x509 -nodes -days 365 -newkey rsa:2048 
--keyout /etc/nginx/certs/nginx.key -out /etc/nginx/certs/nginx.crt -subj '/CN=localhost'; fi; nginx -g 'daemon off;'"
+    command: ["/nginx-start.sh"] # Update this line
 
   nfs-server:
     image: itsthenetwork/nfs-server-alpine
