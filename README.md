@@ -50,7 +50,7 @@ are whitelisted by the appropriate services until the system is rebooted.
 
 This container provides netowrk file share service using both NFS and SMB protocols. It exposes the following ports via .env:
 
-- NFS: 25049
+- NFS: 2049
 - SMB NetBIOS: 137/udp
 - SMB: 445
 - SMB Secure: 5445
