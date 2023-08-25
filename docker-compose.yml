@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  joplin-server:
+    image: joplin/server
+    ports:
+      - "25001:22300"
+    environment:
+      - POSTGRES_PASSWORD=dummy_password
+      - POSTGRES_USER=dummy_user
+      - POSTGRES_HOST=postgres
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certs:/etc/nginx/certs
+    ports:
+      - "25002:80"
+      - "25003:443"
+    depends_on:
+      - joplin-server
+    command: /bin/sh -c "if [ ! -f /etc/nginx/certs/nginx.crt ]; then openssl req -x509 -nodes -days 365 -newkey rsa:2048 
+-keyout /etc/nginx/certs/nginx.key -out /etc/nginx/certs/nginx.crt -subj '/CN=localhost'; fi; nginx -g 'daemon off;'"
+
+  nfs-server:
+    image: itsthenetwork/nfs-server-alpine
+    volumes:
+      - nfs-data:/nfsshare
+    environment:
+      - SHARED_DIRECTORY=/nfsshare
+    ports:
+      - "25004:2049"
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=dummy_password
+      - POSTGRES_USER=dummy_user
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  nfs-data:
+    driver: local
+  postgres-data:
+    driver: local
+
