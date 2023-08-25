@@ -1,50 +1,24 @@
 version: '3.8'
-
 services:
-  joplin-server:
-    image: joplin/server
-    ports:
-      - "25001:22300"
-    environment:
-      - POSTGRES_PASSWORD=dummy_password
-      - POSTGRES_USER=dummy_user
-      - POSTGRES_HOST=postgres
-    depends_on:
-      - postgres
-
-  nginx:
-    image: nginx:latest
+  artifacttoolkit-auth:
+    build: ./artifacttoolkit-auth
+    container_name: artifacttoolkit-auth
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/nginx/certs
-      - ./nginx-start.sh:/nginx-start.sh # Add this line
-    ports:
-      - "25002:80"
-      - "25003:443"
-    depends_on:
-      - joplin-server
-    command: ["/nginx-start.sh"] # Update this line
+      - ah-auth-opt:/opt
 
-  nfs-server:
-    image: itsthenetwork/nfs-server-alpine
-    volumes:
-      - nfs-data:/nfsshare
-    environment:
-      - SHARED_DIRECTORY=/nfsshare
+  artifacttoolkit-storage:
+    build: ./artifacttoolkit-storage
+    container_name: artifacttoolkit-storage
     ports:
-      - "25004:2049"
-
-  postgres:
-    image: postgres:latest
-    environment:
-      - POSTGRES_PASSWORD=dummy_password
-      - POSTGRES_USER=dummy_user
+      - "${NFS_PORT}:2049"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ah-storage-tools:${TOOLS_PATH}
+      - ah-storage-artifacts:${ARTIFACTS_PATH}
+      - ah-storage-git:${GIT_PATH}
 
 volumes:
-  nfs-data:
-    driver: local
-  postgres-data:
-    driver: local
+  ah-auth-opt:
+  ah-storage-tools:
+  ah-storage-artifacts:
+  ah-storage-git:
 

@@ -1,0 +1,3 @@
+/opt/shares/tools *(rw,fsid=0,no_subtree_check)
+/opt/shares/artifacts *(rw,fsid=1,no_subtree_check)
+/opt/shares/git *(rw,fsid=2,no_subtree_check)
