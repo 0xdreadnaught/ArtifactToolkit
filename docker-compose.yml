@@ -13,17 +13,21 @@ services:
       context: ./artifacttoolkit-storage
       dockerfile: Dockerfile
     container_name: artifacttoolkit-storage
+    privileged: true
     environment:
       - NFS_PORT=${NFS_PORT}
-      - TOOLS_PATH=${TOOLS_PATH}
-      - ARTIFACTS_PATH=${ARTIFACTS_PATH}
-      - GIT_PATH=${GIT_PATH}
+      - SMB_NETBIOS_PORT=${SMB_NETBIOS_PORT}
+      - SMB_PORT=${SMB_PORT}
+      - SMB_SECURE_PORT=${SMB_SECURE_PORT}
     ports:
       - "${NFS_PORT}:2049"
+      - "${SMB_NETBIOS_PORT}:137"
+      - "${SMB_PORT}:445"
+      - "${SMB_SECURE_PORT}:5445"
     volumes:
-      - ah-storage-tools:${TOOLS_PATH}
-      - ah-storage-artifacts:${ARTIFACTS_PATH}
-      - ah-storage-git:${GIT_PATH}
+      - ah-storage-tools:/opt/shares/tools
+      - ah-storage-artifacts:/opt/shares/artifacts
+      - ah-storage-git:/opt/shares/git
 
 volumes:
   ah-auth-opt:

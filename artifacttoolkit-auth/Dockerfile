@@ -4,4 +4,4 @@ FROM quay.io/centos/centos:stream9
 
 VOLUME ["/opt"]
 
-CMD ["/usr/sbin/init"]
+CMD ["tail", "-f", "/dev/null"]
