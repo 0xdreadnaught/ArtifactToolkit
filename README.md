@@ -28,7 +28,8 @@ ArtifactToolkit is a containerized security service designed to facilitate pente
    ```
 
 3. Configure .env:
-   ```cp ./.env-sample ./.env
+   ```bash
+   cp ./.env-sample ./.env
    vim ./.env
    ```
 
