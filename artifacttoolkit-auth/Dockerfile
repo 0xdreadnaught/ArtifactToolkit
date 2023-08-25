@@ -1,4 +1,4 @@
-FROM centos:9
+FROM quay.io/centos/centos:stream9
 
 # Any additional setup or configuration can be added here
 
