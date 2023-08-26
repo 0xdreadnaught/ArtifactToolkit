@@ -1,64 +1,26 @@
-# ArtifactToolkit
+# Artifact Toolkit
 
-WIP DO NOT USE
+This repository contains the Dockerized services for the Artifact Toolkit project.
 
-ArtifactToolkit is a containerized security service designed to facilitate pentesting engagements. 
+## Services
 
-## Components
+- `artifacttoolkit-auth`: Authentication service.
 
-1. **NFS/Samba Container**: Enables network file sharing, mapping to Docker volumes.
-2. **Auth Container**: Staged.
+## Setup
 
-## Installation
+1. Clone the repository.
+2. Copy `.env-sample` to `.env` and update the environment variables as needed.
+3. Run `docker-compose up --build` to start the services.
 
-### Prerequisites
+## Development
 
-- Docker
-- Docker Compose
+Currently focusing on the `artifacttoolkit-auth` service. Other services are planned for future development.
 
-### Steps
+## Directory Structure
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/0xdreadnaught/ArtifactToolkit.git
-   ```
-
-2. Navigate to the repository directory:
-   ```bash
-   cd ArtifactToolkit
-   ```
-
-3. Configure .env:
-   ```bash
-   cp ./.env-sample ./.env
-   vim ./.env #change settings
-   ```
-
-4. Build and start the containers:
-   ```bash
-   docker-compose up -d
-   ```
-
-## Configuration
-
-Users must have an SSH key configured on the AT-SSH listener. Users authenticate while passing a mode, nfs/git/notes/all, and 
-are whitelisted by the appropriate services until the system is rebooted. 
-
-## Container Details
-
-### NFS & SMB Container
-
-This container provides netowrk file share service using both NFS and SMB protocols. It exposes the following ports via .env:
-
-- NFS: 2049
-- SMB NetBIOS: 137/udp
-- SMB: 445
-- SMB Secure: 5445
-
-Volumes are mapped to the following paths:
-*These locations are not intended to be changed.
-
-- Tools: /opt/shares/tools
-- Artifacts: /opt/shares/artifacts
-- Git: /opt/shares/git
-
+./
+├── README.md
+├── .env-sample
+├── docker-compose.yml
+└── artifacttoolkit-auth/
+    └── Dockerfile

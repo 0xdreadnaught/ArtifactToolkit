@@ -1,7 +1,15 @@
+# Use CentOS 9 as the base image
 FROM quay.io/centos/centos:stream9
 
-# Any additional setup or configuration can be added here
+# Install Python3 and Paramiko
+RUN yum install -y python3 python3-pip && \
+    pip3 install paramiko
 
-VOLUME ["/opt"]
+# Expose SSH port
+EXPOSE 22
 
-CMD ["tail", "-f", "/dev/null"]
+# Placeholder for the custom script (to be added later)
+COPY krypt-server.py /opt/krypt-server.py
+
+# Run the custom script
+CMD [ "/opt/krypt-server.py" ]

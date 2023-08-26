@@ -1,4 +1,0 @@
-${TOOLS_PATH} *(rw,fsid=0,no_subtree_check)
-${ARTIFACTS_PATH} *(rw,fsid=1,no_subtree_check)
-${GIT_PATH} *(rw,fsid=2,no_subtree_check)
-
