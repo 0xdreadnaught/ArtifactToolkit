@@ -6,6 +6,7 @@
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Reference Output](#reference-output)
 - [Development](#development)
 
 ## Overview
@@ -70,6 +71,20 @@ To remove all your stored keys, use:
 ssh -p 2222 username@server_address purge-keys
 ```
 **Note**: This will remove all your keys, and you'll need to re-upload them for future authentication.
+
+## Reference Output
+### User Registration
+![show registration](imgs/atk-registration.png)
+### User Login
+![show login](imgs/atk-valid-login.png)
+### Duplicate Login
+![show duplicate login](imgs/atk-duplicate-login.png)
+### Invalid Login
+![show invalid login](imgs/atk-invalid-login.png)
+### Missing Key
+![show missing key](imgs/atk-missing-key.png)
+### Malformed Command
+![show malformed command](imgs/atk-malformed-cmd.png)
 
 
 ## Development
