@@ -10,7 +10,7 @@ This repository contains the Dockerized services for the Artifact Toolkit projec
 
 1. Clone the repository.
 2. Copy `.env-sample` to `.env` and update the environment variables as needed.
-3. Run `docker-compose up --build` to start the services.
+3. Run `docker-compose up -d` to start the services.
 4. Add users to user_data.json (required).
 
 ## Development
