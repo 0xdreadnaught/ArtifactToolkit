@@ -17,7 +17,8 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure shari
 - JSON data storage for user information
 - Dockerized services for easy deployment
 - Extensible architecture for future services
-- [![Codacy Security Scan](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml/badge.svg)](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml)
+
+  [![Codacy Security Scan](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml/badge.svg)](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml)
 
 ## Prerequisites
 ### Server
