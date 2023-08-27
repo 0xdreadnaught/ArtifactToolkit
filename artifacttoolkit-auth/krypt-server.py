@@ -15,6 +15,7 @@ from paramiko import RSAKey
 
 CLIENT_ADDRESS = None
 
+
 def log_message(status, message):
     """Logging function."""
     status_colors = {
@@ -27,6 +28,7 @@ def log_message(status, message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{timestamp}] [{status_colors[status]}{status}\033[0m] {message}")
 
+
 def update_json_file(user_data):
     """Update JSON file."""
     try:
@@ -34,6 +36,7 @@ def update_json_file(user_data):
             json.dump(user_data, f, indent=4)
     except Exception as exception:
         log_message("FAIL", "Failed to save JSON!")
+
 
 # Load or create JSON data
 try:
@@ -199,7 +202,9 @@ class Server(paramiko.ServerInterface):
                 "validated": False,
             }
             update_json_file(user_data)
-            log_message("OK", f"Account created for {self.username}, verification pending.")
+            log_message(
+                "OK", f"Account created for {self.username}, verification pending."
+            )
             response = "Account created, verification pending. Please send public key to admin.\n"
 
         channel.send(response)
@@ -214,10 +219,12 @@ class Server(paramiko.ServerInterface):
             log_message("OK", f"Command executed by {self.username}: list-users")
         else:
             response = "No."
-            log_message("WARN", f"{self.username} tried to run list-users without authenticating.")
-    
-        channel.send(response)
+            log_message(
+                "WARN",
+                f"{self.username} tried to run list-users without authenticating.",
+            )
 
+        channel.send(response)
 
     def handle_list_keys(self, channel):
         """Handle list-keys command."""
@@ -233,10 +240,12 @@ class Server(paramiko.ServerInterface):
             log_message("OK", f"Command executed by {self.username}: list-keys")
         else:
             response = "No."
-            log_message("WARN", f"{self.username} tried to run list-keys without authenticating.")
+            log_message(
+                "WARN",
+                f"{self.username} tried to run list-keys without authenticating.",
+            )
 
         channel.send(response)
-        
 
     def handle_prune_keys(self, channel):
         """Handle prune-keys command."""
@@ -249,7 +258,10 @@ class Server(paramiko.ServerInterface):
             log_message("OK", f"Command executed by {self.username}: prune-keys")
         else:
             response = "No."
-            log_message("WARN", f"{self.username} tried to run prune-keys without authenticating.")
+            log_message(
+                "WARN",
+                f"{self.username} tried to run prune-keys without authenticating.",
+            )
 
         channel.send(response)
 
@@ -262,10 +274,12 @@ class Server(paramiko.ServerInterface):
             log_message("OK", f"Command executed by {self.username}: purge-keys")
         else:
             response = "No."
-            log_message("WARN", f"{self.username} tried to run purge-keys without authenticating.")
+            log_message(
+                "WARN",
+                f"{self.username} tried to run purge-keys without authenticating.",
+            )
 
         channel.send(response)
-
 
     def handle_help(self, channel):
         """Handle help command."""
@@ -282,7 +296,9 @@ class Server(paramiko.ServerInterface):
             log_message("OK", f"Command executed by {self.username}: help")
         else:
             response = "No."
-            log_message("WARN", f"{self.username} tried to run help without authenticating.")
+            log_message(
+                "WARN", f"{self.username} tried to run help without authenticating."
+            )
 
         channel.send(response)
 
