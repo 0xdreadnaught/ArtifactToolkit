@@ -10,7 +10,7 @@
 - [Development](#development)
 
 ## Overview
-Artifact Toolkit is a collection of Dockerized services focusing on secure authentication and other utilities. The primary service is Krypt-Server, a PKI/JSON based authentication service running in the artifacttoolkit-auth container.
+Artifact Toolkit is a collection of Dockerized services focusing on secure sharing of artifacts and tools during a pentesting engagement. One member of the team will host the services, while the other members hoook in to share/pull as needed. All user sessions are invalidated on boot (adjustable time limit pending). The primary service is Krypt-Server, a PKI/JSON based authentication service running in the artifacttoolkit-auth container. [Pending:] After the user authenticates with the Krypt server and receives a valid session, their IP is whitelisted with the other services.
 
 ## Features
 - PKI-based authentication using public keys
@@ -64,6 +64,13 @@ To list all your public keys stored on the server, use:
 ```bash
 ssh -p 2222 username@server_address list-keys
 ```
+
+### Prune Keys [authenticated] (pending)
+To remove all unused keys, use: 
+```bash
+ssh -p 222 username@server_address prune-keys
+```
+**Note**: Thid will delete all but the currently active key.
 
 ### Purge Keys [authenticated]
 To remove all your stored keys, use:
