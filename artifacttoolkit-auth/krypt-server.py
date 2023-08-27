@@ -13,6 +13,7 @@ from os.path import exists
 import paramiko
 from paramiko import RSAKey
 
+CLIENT_ADDRESS = None
 
 def log_message(status, message):
     """Logging function."""
@@ -26,7 +27,6 @@ def log_message(status, message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{timestamp}] [{status_colors[status]}{status}\033[0m] {message}")
 
-
 def update_json_file(user_data):
     """Update JSON file."""
     try:
@@ -35,11 +35,28 @@ def update_json_file(user_data):
     except Exception as exception:
         log_message("FAIL", "Failed to save JSON!")
 
+# Load or create JSON data
+try:
+    with open("user_data.json", "r") as f:
+        log_message("OK", "Loaded user_data.json")
+        user_data = json.load(f)
+        # Write JSON back to file to ensure formatting is in place
+        update_json_file(user_data)
+except FileNotFoundError:
+    log_message("OK", "Created user_data.json")
+    user_data = {}
+    update_json_file(user_data)
+
+# Invalidate all users by setting 'validated' to False
+for username in user_data:
+    log_message("INFO", f"Invalidating stale session for {username}")
+    user_data[username]["validated"] = False
+update_json_file(user_data)
+
 
 def update_last_seen(username, user_data):
     """Update last seen time for a user."""
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
-
     try:
         if username in user_data:
             user_data[username]["last_seen"] = current_time
@@ -76,23 +93,37 @@ def get_user_validated_status(username, user_data):
         return None
 
 
-# Load or create JSON data
-try:
-    with open("user_data.json", "r") as f:
-        log_message("OK", "Loaded user_data.json")
-        user_data = json.load(f)
-        # Write JSON back to file to ensure formatting is in place
-        update_json_file(user_data)
-except FileNotFoundError:
-    log_message("INFO", "Created user_data.json")
-    user_data = {}
-    update_json_file(user_data)
+def setup_transport(client_socket):
+    transport = paramiko.Transport(client_socket)
+    transport.load_server_moduli()
+    transport.add_server_key(paramiko.RSAKey(filename="temp_server_key"))
+    return transport
 
-# Invalidate all users by setting 'validated' to False
-for username in user_data:
-    log_message("INFO", f"Invalidating stale session for {username}")
-    user_data[username]["validated"] = False
-update_json_file(user_data)
+
+def handle_channel(transport, server):
+    channel = transport.accept()
+    if channel is None:
+        log_message("WARN", f"Potential password auth from {CLIENT_ADDRESS[0]}")
+    else:
+        server.event.wait(10)
+        channel.close()
+
+
+def handle_client(client_socket):
+    global CLIENT_ADDRESS
+    CLIENT_ADDRESS = client_socket.getpeername()
+    log_message("INFO", f"Connection accepted from {CLIENT_ADDRESS}")
+
+    try:
+        transport = setup_transport(client_socket)
+        server = Server()
+        transport.start_server(server=server)
+        handle_channel(transport, server)
+    except Exception as exception:
+        log_message("FAIL", f"Exception handling client: {str(exception)}")
+    finally:
+        transport.close()
+
 
 class Server(paramiko.ServerInterface):
     """Server Class."""
@@ -121,6 +152,27 @@ class Server(paramiko.ServerInterface):
         if kind == "session":
             return paramiko.OPEN_SUCCEEDED
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
+
+    def check_channel_exec_request(self, channel, command):
+        """Check channel exec request."""
+        cmd_str = command.decode("utf-8")
+        command_handlers = {
+            "login": self.handle_login,
+            "list-users": self.handle_list_users,
+            "list-keys": self.handle_list_keys,
+            "prune-keys": self.handle_prune_keys,
+            "purge-keys": self.handle_purge_keys,
+            "help": self.handle_help,
+        }
+
+        if cmd_str in command_handlers:
+            command_handlers[cmd_str](channel)
+        else:
+            channel.send(f"{cmd_str} command not found.\n")
+            log_message("FAIL", f"Invalid command from {self.username}: {cmd_str}")
+
+        self.event.set()
+        return True
 
     def handle_login(self, channel):
         """Handle login command."""
@@ -166,22 +218,23 @@ class Server(paramiko.ServerInterface):
     
         channel.send(response)
 
+
     def handle_list_keys(self, channel):
         """Handle list-keys command."""
         if get_user_validated_status(self.username, user_data):
             response = "Keys:\n"
             current_key_base64 = self.key.get_base64()
-            for key in user_data[self.username]["public_keys"]:
+            for index, key in enumerate(user_data[self.username]["public_keys"]):
                 if key == current_key_base64:
-                    response += f"\t(active) {key}\n"
+                    response += f"\t{index} (active) {key}\n"
                 else:
-                    response += f"\t{key}\n"
+                    response += f"\t{index} {key}\n"
             response += "\n"
             log_message("OK", f"Command executed by {self.username}: list-keys")
         else:
             response = "No."
             log_message("WARN", f"{self.username} tried to run list-keys without authenticating.")
-    
+
         channel.send(response)
         
 
@@ -232,53 +285,6 @@ class Server(paramiko.ServerInterface):
             log_message("WARN", f"{self.username} tried to run help without authenticating.")
 
         channel.send(response)
-
-
-    def check_channel_exec_request(self, channel, command):
-        """Check channel exec request."""
-        cmd_str = command.decode("utf-8")
-        command_handlers = {
-            "login": self.handle_login,
-            "list-users": self.handle_list_users,
-            "list-keys": self.handle_list_keys,
-            "prune-keys": self.handle_prune_keys,
-            "purge-keys": self.handle_purge_keys,
-            "help": self.handle_help,
-        }
-
-        if cmd_str in command_handlers:
-            command_handlers[cmd_str](channel)
-        else:
-            channel.send(f"{cmd_str} command not found.\n")
-            log_message("FAIL", f"Invalid command from {self.username}: {cmd_str}")
-
-        self.event.set()
-        return True
-
-
-def handle_client(client_socket):
-    """Handle client connections."""
-    global CLIENT_ADDRESS
-    CLIENT_ADDRESS = client_socket.getpeername()
-    log_message("INFO", f"Connection accepted from {CLIENT_ADDRESS}")
-
-    try:
-        transport = paramiko.Transport(client_socket)
-        transport.load_server_moduli()
-        transport.add_server_key(paramiko.RSAKey(filename="temp_server_key"))
-        server = Server()
-        transport.start_server(server=server)
-
-        channel = transport.accept()
-        if channel is None:
-            log_message("WARN", f"Potential password auth from {CLIENT_ADDRESS[0]}")
-        else:
-            server.event.wait(10)
-            channel.close()
-    except Exception as exception:
-        log_message("FAIL", f"Exception handling client: {str(exception)}")
-    finally:
-        transport.close()
 
 
 if __name__ == "__main__":
