@@ -12,4 +12,4 @@ EXPOSE 22
 COPY krypt-server.py /opt/krypt-server.py
 
 # Run the custom script
-CMD [ "/opt/krypt-server.py" ]
+CMD [ "python3 /opt/krypt-server.py 2>/dev/null" ]
