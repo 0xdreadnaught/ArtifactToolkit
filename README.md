@@ -62,7 +62,7 @@ To list all your public keys stored on the server, use:
 ssh -p 2222 username@server_address list-keys
 ```
 
-### Prune Keys [authenticated] (pending)
+### Prune Keys [authenticated]
 To remove all unused keys, use: 
 ```bash
 ssh -p 222 username@server_address prune-keys
