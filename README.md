@@ -10,7 +10,7 @@
 - [Development](#development)
 
 ## Overview
-Artifact Toolkit is a collection of Dockerized services focusing on secure sharing of artifacts and tools during a pentesting engagement. One member of the team will host the services, while the other members hoook in to share/pull as needed. All user sessions are invalidated on boot (adjustable time limit pending). The primary service is Krypt-Server, a PKI/JSON based authentication service running in the artifacttoolkit-auth container. [Pending:] After the user authenticates with the Krypt server and receives a valid session, their IP is whitelisted with the other services.
+Artifact Toolkit is a collection of Dockerized services focusing on secure sharing of artifacts and tools during a pentesting engagement. One member of the team will host the services, while the other members hook in to share/pull as needed. All user sessions are invalidated on boot (adjustable time limit pending). The primary service is Krypt-Server, a PKI/JSON based authentication service running in the artifacttoolkit-auth container. [Pending:] After the user authenticates with the Krypt server and receives a valid session, their IP is whitelisted with the other services.
 
 ## Features
 - PKI-based authentication using public keys
