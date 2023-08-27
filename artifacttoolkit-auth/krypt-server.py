@@ -93,11 +93,11 @@ class Server(paramiko.ServerInterface):
             self.logged = True
         return paramiko.AUTH_SUCCESSFUL
 
-    def get_allowed_auths(self, username):
+    def get_allowed_auths(username):
         allowed_auths = 'publickey'
         return allowed_auths
 
-    def check_channel_request(self, kind, chanid):
+    def check_channel_request(kind, chanid):
         if kind == 'session':
             return paramiko.OPEN_SUCCEEDED
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
