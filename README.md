@@ -18,8 +18,8 @@ This repository contains the Dockerized services for the Artifact Toolkit projec
 Currently focusing on the `artifacttoolkit-auth` service. Other services are planned for future development.
 
 ## Directory Structure
-
-./
+```
+./ArtifactToolkit
 
 ├── README.md
 
@@ -32,9 +32,10 @@ Currently focusing on the `artifacttoolkit-auth` service. Other services are pla
 └── artifacttoolkit-auth/
 
     └── Dockerfile
-
+    
     └── krypt-server.py
-
+    
     └── temp_server_key
-
+    
     └── user_data.json
+```
