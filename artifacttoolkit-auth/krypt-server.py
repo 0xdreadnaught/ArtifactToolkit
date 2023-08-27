@@ -201,14 +201,14 @@ def handle_client(client_socket):
     global client_address
     client_address = client_socket.getpeername()
     log_message("INFO", f"Connection accepted from {client_address}")
-        
+
     try:
         transport = paramiko.Transport(client_socket)
         transport.load_server_moduli()
         transport.add_server_key(paramiko.RSAKey(filename='temp_server_key'))
         server = Server()
         transport.start_server(server=server)
-        
+
         channel = transport.accept()
         if channel is None:
             log_message("WARN", f"Potential password auth from {client_address[0]}")
@@ -219,8 +219,8 @@ def handle_client(client_socket):
         log_message("FAIL", f"Exception handling client: {str(e)}")
     finally:
         transport.close()
-        
-        
+
+
 if __name__ == '__main__':
     # Check if the server key exists; if not, create one
     server_key_path = 'temp_server_key'
@@ -229,14 +229,14 @@ if __name__ == '__main__':
         new_key = RSAKey.generate(bits=2048)
         new_key.write_private_key_file(server_key_path)
         log_message("OK", "New server key generated.")
-        
+
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('0.0.0.0', 2222))
     server_socket.listen(5)
-        
+
     log_message("INFO", "Server listening on port 2222...")
-        
+
     while True:
         client_socket, _ = server_socket.accept()
         threading.Thread(target=handle_client, args=(client_socket,)).start()
