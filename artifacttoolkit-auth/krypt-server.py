@@ -1,3 +1,8 @@
+"""
+Krypt Server
+Authentication gateway for ArtifactToolkit
+"""
+
 import json
 import socket
 import threading
@@ -27,7 +32,7 @@ def update_json_file(user_data):
     try:
         with open("user_data.json", "w") as f:
             json.dump(user_data, f)
-    except Exception as e:
+    except Exception as exception:
         log_message("FAIL", "Failed to save JSON!")
 
 
@@ -39,7 +44,7 @@ def update_last_seen(username, user_data):
         if username in user_data:
             user_data[username]['last_seen'] = current_time
             update_json_file(user_data)
-    except Exception as e:
+    except Exception as exception:
         log_message("FAIL", "Failed to find user for LastSeen update!")
 
 
@@ -53,8 +58,8 @@ def verify_user_key(username, key, user_data):
                 if stored_key == key:
                     log_message("OK", f"{username} JSON key verification passed")
                     return True
-            except Exception as e:
-                log_message("FAIL", f"Error decoding stored JSON key for {username}: {str(e)}")
+            except Exception as exception:
+                log_message("FAIL", f"Error decoding stored JSON key for {username}: {str(exception)}")
     log_message("FAIL", f"{username} JSON key verification failed")
     return False
 
@@ -215,8 +220,8 @@ def handle_client(client_socket):
         else:
             server.event.wait(10)
             channel.close()
-    except Exception as e:
-        log_message("FAIL", f"Exception handling client: {str(e)}")
+    except Exception as exception:
+        log_message("FAIL", f"Exception handling client: {str(exception)}")
     finally:
         transport.close()
 
