@@ -12,7 +12,7 @@
 Artifact Toolkit is a collection of Dockerized services focusing on secure authentication and other utilities. The primary service is Krypt-Server, a PKI/JSON based authentication service running in the artifacttoolkit-auth container.
 
 ## Features
-- SSH-based authentication using public keys
+- PKI-based authentication using public keys
 - JSON data storage for user information
 - Dockerized services for easy deployment
 - Extensible architecture for future services
