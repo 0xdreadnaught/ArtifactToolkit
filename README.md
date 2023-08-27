@@ -20,13 +20,8 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure shari
 
 ## Prerequisites
 ### Server
-- [Docker](https://www.docker.com/)
-- [Docker-Compose](https://docs.docker.com/compose/)
-
-Or
-
-- [Podman](https://podman.io/)
-- [Podman-Compose](https://github.com/containers/podman-compose)
+- [Docker](https://www.docker.com/)/[Podman](https://podman.io/)
+- [Docker-Compose](https://docs.docker.com/compose/)/[Podman-Compose](https://github.com/containers/podman-compose)
 
 ### Client
 - [SSH](https://www.ssh.com/academy/ssh) (pending custom binary)
