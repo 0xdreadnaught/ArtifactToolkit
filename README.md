@@ -1,41 +1,49 @@
 # Artifact Toolkit
 
-This repository contains the Dockerized services for the Artifact Toolkit project.
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Development](#development)
 
-## Services
+## Overview
+Artifact Toolkit is a collection of Dockerized services focusing on secure authentication and other utilities. The primary service is `artifacttoolkit-auth`, a Krypt-Server pubkey/JSON based authentication service.
 
-- `artifacttoolkit-auth`: Krypt-Server pubkey/JSON based authentication service.
+## Features
+- SSH-based authentication using public keys
+- JSON data storage for user information
+- Dockerized services for easy deployment
+- Extensible architecture for future services
 
-## Setup
+## Prerequisites
+### Server
+- Docker
+- Python 3.x
+- [Paramiko](https://www.paramikoproject.com/)
+### Client
+- SSH(pending custom binary)
 
-1. Clone the repository.
+## Installation
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/0xdreadnaught/ArtifactToolkit.git
+    ```
 2. Copy `.env-sample` to `.env` and update the environment variables as needed.
-3. Run `docker-compose up -d` to start the services.
-4. Add users to user_data.json (required).
+    ```bash
+    cp .env-sample .env
+    ```
+3. Build and run the Docker services:
+    ```bash
+    docker-compose up -d
+    ```
+4. Add users to `user_data.json` (optional).
+
+## Usage
+<TDB>
 
 ## Development
+The auth container is done for now. Next step is a storage solution. NFS/SMB aren't worth the time given the security/ease of use desired, SFTP is clunky ... I'll think of something ...
 
-Currently focusing on the `artifacttoolkit-auth` service. Other services are planned for future development.
 
-## Directory Structure
-```
-./ArtifactToolkit
-
-├── README.md
-
-├── .env
-
-├── .env-sample
-
-├── docker-compose.yml
-
-└── artifacttoolkit-auth/
-
-    └── Dockerfile
-    
-    └── krypt-server.py
-    
-    └── temp_server_key
-    
-    └── user_data.json
-```
