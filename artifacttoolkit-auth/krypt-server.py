@@ -31,7 +31,7 @@ def update_json_file(user_data):
     """Update JSON file."""
     try:
         with open("user_data.json", "w") as f:
-            json.dump(user_data, f)
+            json.dump(user_data, f, indent=4)
     except Exception as exception:
         log_message("FAIL", "Failed to save JSON!")
 
@@ -81,6 +81,8 @@ try:
     with open("user_data.json", "r") as f:
         log_message("OK", "Loaded user_data.json")
         user_data = json.load(f)
+        # Write JSON back to file to ensure formatting is in place
+        update_json_file(user_data)
 except FileNotFoundError:
     log_message("INFO", "Created user_data.json")
     user_data = {}
@@ -91,7 +93,6 @@ for username in user_data:
     log_message("INFO", f"Invalidating stale session for {username}")
     user_data[username]["validated"] = False
 update_json_file(user_data)
-
 
 class Server(paramiko.ServerInterface):
     """Server Class."""
@@ -113,8 +114,7 @@ class Server(paramiko.ServerInterface):
 
     def get_allowed_auths(self, username):
         """Get allowed auths."""
-        allowed_auths = "publickey"
-        return allowed_auths
+        return "publickey"
 
     def check_channel_request(self, kind, chanid):
         """Check channel request."""
@@ -122,104 +122,136 @@ class Server(paramiko.ServerInterface):
             return paramiko.OPEN_SUCCEEDED
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
+    def handle_login(self, channel):
+        """Handle login command."""
+        if self.username in user_data:
+            update_last_seen(self.username, user_data)
+            if get_user_validated_status(self.username, user_data):
+                log_message("INFO", f"{self.username} sent a redundant login request.")
+                response = "You are already logged in.\n"
+            else:
+                if verify_user_key(self.username, self.key, user_data):
+                    log_message("OK", f"Valid login by {self.username}")
+                    user_data[self.username]["validated"] = True
+                    update_json_file(user_data)
+                    response = "You have been logged in.\n"
+                else:
+                    log_message("FAIL", f"{self.username} has no valid keys.")
+                    response = "No valid keys found. Contact admin.\n"
+        else:
+            current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+            user_data[self.username] = {
+                "public_keys": [""],
+                "first_seen": current_time,
+                "last_seen": current_time,
+                "validated": False,
+            }
+            update_json_file(user_data)
+            log_message("OK", f"Account created for {self.username}, verification pending.")
+            response = "Account created, verification pending. Please send public key to admin.\n"
+
+        channel.send(response)
+
+    def handle_list_users(self, channel):
+        """Handle list-users command."""
+        if get_user_validated_status(self.username, user_data):
+            response = "Users:\n"
+            for user in user_data.keys():
+                response += f"\t{user}\n"
+            response += "\n"
+            log_message("OK", f"Command executed by {self.username}: list-users")
+        else:
+            response = "No."
+            log_message("WARN", f"{self.username} tried to run list-users without authenticating.")
+    
+        channel.send(response)
+
+    def handle_list_keys(self, channel):
+        """Handle list-keys command."""
+        if get_user_validated_status(self.username, user_data):
+            response = "Keys:\n"
+            current_key_base64 = self.key.get_base64()
+            for key in user_data[self.username]["public_keys"]:
+                if key == current_key_base64:
+                    response += f"\t(active) {key}\n"
+                else:
+                    response += f"\t{key}\n"
+            response += "\n"
+            log_message("OK", f"Command executed by {self.username}: list-keys")
+        else:
+            response = "No."
+            log_message("WARN", f"{self.username} tried to run list-keys without authenticating.")
+    
+        channel.send(response)
+        
+
+    def handle_prune_keys(self, channel):
+        """Handle prune-keys command."""
+        if get_user_validated_status(self.username, user_data):
+            # Keep only the key used for the current session
+            current_key_base64 = self.key.get_base64()
+            user_data[self.username]["public_keys"] = [current_key_base64]
+            update_json_file(user_data)
+            response = "Keys pruned, only the current key is retained.\n"
+            log_message("OK", f"Command executed by {self.username}: prune-keys")
+        else:
+            response = "No."
+            log_message("WARN", f"{self.username} tried to run prune-keys without authenticating.")
+
+        channel.send(response)
+
+    def handle_purge_keys(self, channel):
+        """Handle purge-keys command."""
+        if get_user_validated_status(self.username, user_data):
+            user_data[self.username]["public_keys"] = [""]
+            update_json_file(user_data)
+            response = "Keys purged.\n"
+            log_message("OK", f"Command executed by {self.username}: purge-keys")
+        else:
+            response = "No."
+            log_message("WARN", f"{self.username} tried to run purge-keys without authenticating.")
+
+        channel.send(response)
+
+
+    def handle_help(self, channel):
+        """Handle help command."""
+        if get_user_validated_status(self.username, user_data):
+            response = (
+                "\nSupported commands:\n\n"
+                "\tlogin: \t\tAuthenticate to gain access to services.\n"
+                "\tlist-users: \tShow registered and pending users.\n"
+                "\tlist-keys: \tList your public keys.\n"
+                "\tpurge-keys: \tWipe all your public keys.\n"
+                "\tprune-keys: \tRemove all public keys except the one used for the current session.\n"
+                "\thelp: \t\tDisplay this help message.\n\n"
+            )
+            log_message("OK", f"Command executed by {self.username}: help")
+        else:
+            response = "No."
+            log_message("WARN", f"{self.username} tried to run help without authenticating.")
+
+        channel.send(response)
+
+
     def check_channel_exec_request(self, channel, command):
         """Check channel exec request."""
         cmd_str = command.decode("utf-8")
-        if cmd_str == "login":
-            # Do they have an account?
-            if self.username in user_data:
-                update_last_seen("some_username", user_data)
-                # Are they already validated?
-                if get_user_validated_status(self.username, user_data):
-                    log_message(
-                        "INFO", f"{self.username} sent a redundant login request."
-                    )
-                    response = "You are already logged in.\n"
-                else:
-                    # Do they have a public key?
-                    if verify_user_key(self.username, self.key, user_data):
-                        # Do key verification and update the last seen status
-                        log_message("OK", f"Valid login by {self.username}")
-                        user_data[self.username]["validated"] = True
-                        update_json_file(user_data)
-                        response = "You have been logged in\n"
-                    else:
-                        log_message("FAIL", f"{self.username} has no valid keys.")
-                        response = "No valid keys found. Contact admin.\n"
-            else:
-                # Create a template for the user
-                current_time = time.strftime("%Y-%m-%d %H:%M:%S")
-                user_data[self.username] = {
-                    "public_keys": [""],
-                    "first_seen": current_time,
-                    "last_seen": current_time,
-                    "validated": False,
-                }
-                update_json_file(user_data)
-                log_message(
-                    "OK", f"Account created for {self.username}, verification pending."
-                )
-                response = "Account created, verification pending. Please send public key to admin.\n"
-        elif cmd_str == "list-users":
-            if get_user_validated_status(self.username, user_data):
-                response = "Users:\n"
-                response = "Users:\n" + "\n".join(user_data.keys())
-                # send another response with all usernames in JSON
-                log_message("OK", f"Command executed by {self.username}: {cmd_str}")
-            else:
-                response = "No."
-                log_message(
-                    "WARN",
-                    f"{self.username} tried to run {cmd_str} without authenticating.",
-                )
-        elif cmd_str == "list-keys":
-            if get_user_validated_status(self.username, user_data):
-                response = "Keys:\n\n".join(user_data[self.username]["public_keys"])
-                # send another response with all of the user's keys from the JSON
-                log_message("OK", f"Command executed by {self.username}: {cmd_str}")
-            else:
-                response = "No."
-                log_message(
-                    "WARN",
-                    f"{self.username} tried to run {cmd_str} without authenticating.",
-                )
-        elif cmd_str == "purge-keys":
-            if get_user_validated_status(self.username, user_data):
-                response = "Keys purged.\n"
-                # wipe the user's keys from JSON
-                user_data[self.username]["public_keys"] = [""]
-                update_json_file(user_data)
-                log_message("OK", f"Command executed by {self.username}: {cmd_str}")
-            else:
-                response = "No."
-                log_message(
-                    "WARN",
-                    f"{self.username} tried to run {cmd_str} without authenticating.",
-                )
-        elif cmd_str == "help":
-            if get_user_validated_status(self.username, user_data):
-                response = "Supported commands:\n\nlogin: authenticate to gain access to services.\nlist-users: show registered and pending users.\nlist-keys:list your keys.\npurge-keys:wipe your keys.\nhelp: this message."
-                # send another response with all of the user's keys from the JSON
-                log_message("OK", f"Command executed by {self.username}: {cmd_str}")
-            else:
-                response = "No."
-                log_message(
-                    "WARN",
-                    f"{self.username} tried to run {cmd_str} without authenticating.",
-                )
-        else:
-            if get_user_validated_status(self.username, user_data):
-                response = f"{cmd_str} command not found.\n"
-                # send another response with all of the user's keys from the JSON
-                log_message("FAIL", f"Invalid command from {self.username}: {cmd_str}")
-            else:
-                response = "No."
-                log_message(
-                    "WARN",
-                    f"{self.username} tried to run {cmd_str} without authenticating.",
-                )
+        command_handlers = {
+            "login": self.handle_login,
+            "list-users": self.handle_list_users,
+            "list-keys": self.handle_list_keys,
+            "prune-keys": self.handle_prune_keys,
+            "purge-keys": self.handle_purge_keys,
+            "help": self.handle_help,
+        }
 
-        channel.send(response)
+        if cmd_str in command_handlers:
+            command_handlers[cmd_str](channel)
+        else:
+            channel.send(f"{cmd_str} command not found.\n")
+            log_message("FAIL", f"Invalid command from {self.username}: {cmd_str}")
+
         self.event.set()
         return True
 
