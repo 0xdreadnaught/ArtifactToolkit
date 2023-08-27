@@ -8,8 +8,9 @@ from os.path import exists
 import paramiko
 from paramiko import RSAKey
 
-# Logging function
+
 def log_message(status, message):
+    """Logging function."""
     status_colors = {
         "OK": "\033[92m",
         "FAIL": "\033[91m",
@@ -20,25 +21,18 @@ def log_message(status, message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{timestamp}] [{status_colors[status]}{status}\033[0m] {message}")
 
-# Load or create JSON data
-try:
-    with open("user_data.json", "r") as f:
-        log_message("OK", f"Loaded user_data.json")
-        user_data = json.load(f)
-except FileNotFoundError:
-    log_message("INFO", f"Created user_data.json")
-    user_data = {}
-    with open("user_data.json", "w") as f:
-        json.dump(user_data, f)
 
 def update_json_file(user_data):
+    """Update JSON file."""
     try:
         with open("user_data.json", "w") as f:
             json.dump(user_data, f)
     except Exception as e:
-        log_message("FAIL", f"Failed to save JSON!")
+        log_message("FAIL", "Failed to save JSON!")
+
 
 def update_last_seen(username, user_data):
+    """Update last seen time for a user."""
     current_time = time.strftime("%Y-%m-%d %H:%M:%S")
 
     try:
@@ -46,10 +40,11 @@ def update_last_seen(username, user_data):
             user_data[username]['last_seen'] = current_time
             update_json_file(user_data)
     except Exception as e:
-        log_message("FAIL", f"Failed to find user for LastSeen update!")
+        log_message("FAIL", "Failed to find user for LastSeen update!")
 
-# JSON key auth
+
 def verify_user_key(username, key, user_data):
+    """Verify user key from JSON."""
     if username in user_data and 'public_keys' in user_data[username]:
         for stored_key_base64 in user_data[username]['public_keys']:
             try:
@@ -63,12 +58,25 @@ def verify_user_key(username, key, user_data):
     log_message("FAIL", f"{username} JSON key verification failed")
     return False
 
+
 def get_user_validated_status(username, user_data):
+    """Get user validation status from JSON."""
     try:
         return user_data[username]['validated']
     except KeyError:
-        log_message("FAIL", f"Failed to parse validation status from JSON!")
+        log_message("FAIL", "Failed to parse validation status from JSON!")
         return None
+
+
+# Load or create JSON data
+try:
+    with open("user_data.json", "r") as f:
+        log_message("OK", "Loaded user_data.json")
+        user_data = json.load(f)
+except FileNotFoundError:
+    log_message("INFO", "Created user_data.json")
+    user_data = {}
+    update_json_file(user_data)
 
 # Invalidate all users by setting 'validated' to False
 for username in user_data:
@@ -76,15 +84,17 @@ for username in user_data:
     user_data[username]['validated'] = False
 update_json_file(user_data)
 
-# Server Class
+
 class Server(paramiko.ServerInterface):
+    """Server Class."""
+
     def __init__(self):
         self.event = threading.Event()
         self.username = None
         self.logged = False
 
-    # SSH key auth
     def check_auth_publickey(self, username, key):
+        """SSH key auth."""
         if not self.logged:
             self.username = username
             self.key = key
@@ -93,16 +103,19 @@ class Server(paramiko.ServerInterface):
             self.logged = True
         return paramiko.AUTH_SUCCESSFUL
 
-    def get_allowed_auths(username):
+    def get_allowed_auths(self, username):
+        """Get allowed auths."""
         allowed_auths = 'publickey'
         return allowed_auths
 
-    def check_channel_request(kind, chanid):
+    def check_channel_request(self, kind, chanid):
+        """Check channel request."""
         if kind == 'session':
             return paramiko.OPEN_SUCCEEDED
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_channel_exec_request(self, channel, command):
+        """Check channel exec request."""
         cmd_str = command.decode('utf-8')
         if cmd_str == 'login':
             # Do they have an account?
@@ -184,17 +197,18 @@ class Server(paramiko.ServerInterface):
         return True
 
 def handle_client(client_socket):
+    """Handle client connections."""
     global client_address
     client_address = client_socket.getpeername()
     log_message("INFO", f"Connection accepted from {client_address}")
-
+        
     try:
         transport = paramiko.Transport(client_socket)
         transport.load_server_moduli()
         transport.add_server_key(paramiko.RSAKey(filename='temp_server_key'))
         server = Server()
         transport.start_server(server=server)
-
+        
         channel = transport.accept()
         if channel is None:
             log_message("WARN", f"Potential password auth from {client_address[0]}")
@@ -205,7 +219,8 @@ def handle_client(client_socket):
         log_message("FAIL", f"Exception handling client: {str(e)}")
     finally:
         transport.close()
-
+        
+        
 if __name__ == '__main__':
     # Check if the server key exists; if not, create one
     server_key_path = 'temp_server_key'
@@ -214,13 +229,14 @@ if __name__ == '__main__':
         new_key = RSAKey.generate(bits=2048)
         new_key.write_private_key_file(server_key_path)
         log_message("OK", "New server key generated.")
+        
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('0.0.0.0', 2222))
     server_socket.listen(5)
-
+        
     log_message("INFO", "Server listening on port 2222...")
-
+        
     while True:
         client_socket, _ = server_socket.accept()
         threading.Thread(target=handle_client, args=(client_socket,)).start()
