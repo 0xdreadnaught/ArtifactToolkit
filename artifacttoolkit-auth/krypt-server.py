@@ -103,7 +103,7 @@ class Server(paramiko.ServerInterface):
         if not self.logged:
             self.username = username
             self.key = key
-            log_message("INFO", f"{username} connected from {client_address[0]}")
+            log_message("INFO", f"{username} connected from {Client_Address[0]}")
             log_message("OK", f"{username} key validation passed")
             self.logged = True
         return paramiko.AUTH_SUCCESSFUL
@@ -203,9 +203,9 @@ class Server(paramiko.ServerInterface):
 
 def handle_client(client_socket):
     """Handle client connections."""
-    global client_address
-    client_address = client_socket.getpeername()
-    log_message("INFO", f"Connection accepted from {client_address}")
+    global Client_Address
+    Client_Address = client_socket.getpeername()
+    log_message("INFO", f"Connection accepted from {Client_Address}")
 
     try:
         transport = paramiko.Transport(client_socket)
@@ -216,7 +216,7 @@ def handle_client(client_socket):
 
         channel = transport.accept()
         if channel is None:
-            log_message("WARN", f"Potential password auth from {client_address[0]}")
+            log_message("WARN", f"Potential password auth from {Client_Address[0]}")
         else:
             server.event.wait(10)
             channel.close()
@@ -228,11 +228,11 @@ def handle_client(client_socket):
 
 if __name__ == '__main__':
     # Check if the server key exists; if not, create one
-    server_key_path = 'temp_server_key'
-    if not exists(server_key_path):
+    Server_Key_Path = 'temp_server_key'
+    if not exists(Server_Key_Path):
         log_message("INFO", "Server key not found, generating new key...")
         new_key = RSAKey.generate(bits=2048)
-        new_key.write_private_key_file(server_key_path)
+        new_key.write_private_key_file(Server_Key_Path)
         log_message("OK", "New server key generated.")
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
