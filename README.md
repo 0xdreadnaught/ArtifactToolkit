@@ -20,8 +20,11 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure authe
 ## Prerequisites
 ### Server
 - [Docker](https://www.docker.com/)
-- [Python 3.x](https://www.python.org/downloads/)
-- [Paramiko](https://www.paramikoproject.com/)
+- [Docker-Compose](https://docs.docker.com/compose/)
+Or
+- [Podman](https://podman.io/)
+- [Podman-Compose](https://github.com/containers/podman-compose)
+
 ### Client
 - [SSH](https://www.ssh.com/academy/ssh) (pending custom binary)
 
