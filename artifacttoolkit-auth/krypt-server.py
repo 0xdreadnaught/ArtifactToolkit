@@ -97,6 +97,7 @@ def get_user_validated_status(username, user_data):
 
 
 def setup_transport(client_socket):
+    """Establish encrypted transport"""
     transport = paramiko.Transport(client_socket)
     transport.load_server_moduli()
     transport.add_server_key(paramiko.RSAKey(filename="temp_server_key"))
@@ -104,6 +105,7 @@ def setup_transport(client_socket):
 
 
 def handle_channel(transport, server):
+    """Deny all channel requests."""
     channel = transport.accept()
     if channel is None:
         log_message("WARN", f"Potential password auth from {CLIENT_ADDRESS[0]}")
@@ -113,6 +115,7 @@ def handle_channel(transport, server):
 
 
 def handle_client(client_socket):
+    """Client socket."""
     global CLIENT_ADDRESS
     CLIENT_ADDRESS = client_socket.getpeername()
     log_message("INFO", f"Connection accepted from {CLIENT_ADDRESS}")
