@@ -9,7 +9,7 @@
 - [Development](#development)
 
 ## Overview
-Artifact Toolkit is a collection of Dockerized services focusing on secure authentication and other utilities. The primary service is `artifacttoolkit-auth`, a Krypt-Server pubkey/JSON based authentication service.
+Artifact Toolkit is a collection of Dockerized services focusing on secure authentication and other utilities. The primary service is Krypt-Server, a PKI/JSON based authentication service running in the artifacttoolkit-auth container.
 
 ## Features
 - SSH-based authentication using public keys
@@ -19,11 +19,11 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure authe
 
 ## Prerequisites
 ### Server
-- Docker
-- Python 3.x
+- [Docker](https://www.docker.com/)
+- [Python 3.x](https://www.python.org/downloads/)
 - [Paramiko](https://www.paramikoproject.com/)
 ### Client
-- SSH(pending custom binary)
+- [SSH](https://www.ssh.com/academy/ssh) (pending custom binary)
 
 ## Installation
 1. Clone the repository:
@@ -41,7 +41,33 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure authe
 4. Add users to `user_data.json` (optional).
 
 ## Usage
-<TDB>
+
+### Login
+To log in, use the following command:
+```bash
+ssh -p 2222 username@server_address login
+```
+This will authenticate you and grant access to other services.
+
+### List Users [authenticated]
+To list all registered and pending users, use:
+```bash
+ssh -p 2222 username@server_address list-users
+```
+
+### List Keys [authenticated]
+To list all your public keys stored on the server, use:
+```bash
+ssh -p 2222 username@server_address list-keys
+```
+
+### Purge Keys [authenticated]
+To remove all your stored keys, use:
+```bash
+ssh -p 2222 username@server_address purge-keys
+```
+**Note**: This will remove all your keys, and you'll need to re-upload them for future authentication.
+
 
 ## Development
 The auth container is done for now. Next step is a storage solution. NFS/SMB aren't worth the time given the security/ease of use desired, SFTP is clunky ... I'll think of something ...
