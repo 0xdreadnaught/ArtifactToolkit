@@ -94,4 +94,6 @@ ssh -p 2222 username@server_address purge-keys
 ## Development
 The auth container is done for now. Next step is a storage solution. NFS/SMB aren't worth the time given the security/ease of use desired, SFTP is clunky ... I'll think of something ...
 
+[![Codacy Security Scan](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml/badge.svg)](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml)
+
 
