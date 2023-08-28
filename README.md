@@ -83,7 +83,7 @@ To remove a specified key, use:
 ```bash
 ssh -p 2222 username@server_address remove-key <ID#>
 ```
-**Note**: Thid will not remove the active key.
+**Note**: This will not remove the active key.
 
 ## Reference Output
 ### User Registration
