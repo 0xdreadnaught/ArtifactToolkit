@@ -4,11 +4,26 @@ services:
     build:
       context: ./artifacttoolkit-auth
       dockerfile: Dockerfile
-    container_name: artifacttoolkit-auth
+    container_name: atk-auth
     ports:
       - "${SSH_PORT}:2222"
     volumes:
       - auth-opt:/opt
 
+  artifacttoolkit-nessus:
+    build:
+      context: ./artifacttoolkit-nessus
+      dockerfile: Dockerfile
+    container_name: atk-nessus
+    ports:
+      - "8443:8443"
+      - "8834:8834"
+    environment:
+      - USERNAME=${NESSUS_USER}
+      - PASSWORD=${NESSUS_PASSWORD}
+    volumes:
+      - nessus-data:/opt/nessus
+
 volumes:
   auth-opt:
+  nessus-data:
