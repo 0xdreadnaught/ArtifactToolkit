@@ -34,7 +34,7 @@ def update_json_file(user_data):
     try:
         with open("user_data.json", "w") as f:
             json.dump(user_data, f, indent=4)
-    except Exception as exception:
+    except:
         log_message("FAIL", "Failed to save JSON!")
 
 
@@ -64,7 +64,7 @@ def update_last_seen(username, user_data):
         if username in user_data:
             user_data[username]["last_seen"] = current_time
             update_json_file(user_data)
-    except Exception as exception:
+    except:
         log_message("FAIL", "Failed to find user for LastSeen update!")
 
 
