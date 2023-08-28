@@ -1,9 +1,12 @@
 version: '3.8'
 services:
   artifacttoolkit-auth:
+    networks:
+      - atk-net
     build:
       context: ./artifacttoolkit-auth
       dockerfile: Dockerfile
+    restart: unless-stopped
     container_name: atk-auth
     ports:
       - "${SSH_PORT}:2222"
@@ -11,18 +14,44 @@ services:
       - auth-opt:/opt
 
   artifacttoolkit-nessus:
+    networks:
+      - atk-net
     build:
       context: ./artifacttoolkit-nessus
       dockerfile: Dockerfile
+    restart: unless-stopped
     container_name: atk-nessus
-    ports:
-      - "8834:8834"
+    #ports:
+      #- "8834:8834"
     environment:
       - USERNAME=${NESSUS_USER}
       - PASSWORD=${NESSUS_PASSWORD}
     volumes:
       - nessus-data:/opt/nessus
 
+  artifacttoolkit-ingest:
+    networks:
+      - atk-net
+    build:
+      context: ./artifacttoolkit-ingest
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: atk-ingest
+    environment:
+      - INGEST_HTTPS=${INGEST_HTTPS}
+      - NESSUS_USER=${NESSUS_USER}
+      - NESSUS_PASSWORD=${NESSUS_PASSWORD}
+    ports:
+      - "${INGEST_HTTP}:80"
+      - "${INGEST_HTTPS}:443"
+    volumes:
+      - ingest-data:/var/www
+
 volumes:
   auth-opt:
   nessus-data:
+  ingest-data:
+
+networks:
+  atk-net:
+    driver: bridge
