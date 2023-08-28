@@ -16,7 +16,6 @@ services:
       dockerfile: Dockerfile
     container_name: atk-nessus
     ports:
-      - "8443:8443"
       - "8834:8834"
     environment:
       - USERNAME=${NESSUS_USER}
