@@ -168,10 +168,19 @@ class Server(paramiko.ServerInterface):
             "list-keys": self.handle_list_keys,
             "prune-keys": self.handle_prune_keys,
             "purge-keys": self.handle_purge_keys,
+            "remove-key": self.handle_remove_key,
             "help": self.handle_help,
         }
 
-        if cmd_str in command_handlers:
+        if cmd_str.startswith("remove-key"):
+            cmd_parts = cmd_str.split(" ")
+            if len(cmd_parts) > 1:
+                key_id = cmd_parts[1]
+                self.handle_remove_key(channel, key_id)
+            else:
+                log_message("FAIL", f"{self.username} issued remove-key without an ID.")
+                channel.send("No key ID provided for remove-key command.\n")
+        elif cmd_str in command_handlers:
             command_handlers[cmd_str](channel)
         else:
             channel.send(f"{cmd_str} command not found.\n")
@@ -284,6 +293,31 @@ class Server(paramiko.ServerInterface):
 
         channel.send(response)
 
+    def handle_remove_key(self, channel, key_id):
+        """Handle remove-key command."""
+        if get_user_validated_status(self.username, user_data):
+            try:
+                key_id = int(key_id)
+                current_key_base64 = self.key.get_base64()
+                if user_data[self.username]["public_keys"][key_id] == current_key_base64:
+                    response = "Cannot remove the active public key.\n"
+                else:
+                    del user_data[self.username]["public_keys"][key_id]
+                    update_json_file(user_data)
+                    response = f"Removed key with ID {key_id}.\n"
+                log_message("OK", f"Command executed by {self.username}: remove-key {key_id}")
+            except (ValueError, IndexError):
+                response = "Invalid key ID.\n"
+                log_message("FAIL", f"Invalid key ID provided by {self.username}: {key_id}")
+        else:
+            response = "No."
+            log_message(
+                "WARN",
+                f"{self.username} tried to run remove-key without authenticating.",
+            )
+
+        channel.send(response)
+
     def handle_help(self, channel):
         """Handle help command."""
         if get_user_validated_status(self.username, user_data):
@@ -292,8 +326,9 @@ class Server(paramiko.ServerInterface):
                 "\tlogin: \t\tAuthenticate to gain access to services.\n"
                 "\tlist-users: \tShow registered and pending users.\n"
                 "\tlist-keys: \tList your public keys.\n"
-                "\tpurge-keys: \tWipe all your public keys.\n"
+                "\tpurge-keys: \tWipe all your public keys, including current session key.\n"
                 "\tprune-keys: \tRemove all public keys except the one used for the current session.\n"
+                "\tremove-key <ID#>: \tRemove the specified key. Cannot remove current session key."
                 "\thelp: \t\tDisplay this help message.\n\n"
             )
             log_message("OK", f"Command executed by {self.username}: help")
