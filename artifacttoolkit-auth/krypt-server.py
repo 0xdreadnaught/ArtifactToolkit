@@ -322,7 +322,7 @@ class Server(paramiko.ServerInterface):
             try:
                 key_id = int(key_id)
                 current_key_base64 = self.key.get_base64()
-                if (user_data[self.username]["public_keys"][key_id] == current_key_base64):
+                if user_data[self.username]["public_keys"][key_id] == current_key_base64:
                     response = "Cannot remove the active public key.\n"
                 else:
                     del user_data[self.username]["public_keys"][key_id]
