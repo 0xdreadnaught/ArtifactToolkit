@@ -20,6 +20,8 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure shari
 
   [![Codacy Security Scan](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml/badge.svg)](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/codacy.yml)
 
+  [![Bandit](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/bandit.yml/badge.svg)](https://github.com/0xdreadnaught/ArtifactToolkit/actions/workflows/bandit.yml)
+
 ## Prerequisites
 ### Server
 - [Docker](https://www.docker.com/)/[Podman](https://podman.io/)
