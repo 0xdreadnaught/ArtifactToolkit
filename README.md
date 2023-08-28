@@ -67,7 +67,7 @@ ssh -p 2222 username@server_address list-keys
 ### Prune Keys [authenticated]
 To remove all unused keys, use: 
 ```bash
-ssh -p 222 username@server_address prune-keys
+ssh -p 2222 username@server_address prune-keys
 ```
 **Note**: Thid will delete all but the currently active key.
 
@@ -77,6 +77,13 @@ To remove all your stored keys, use:
 ssh -p 2222 username@server_address purge-keys
 ```
 **Note**: This will remove all your keys, and you'll need to re-upload them for future authentication.
+
+### Remove Keys [authenticated]
+To remove a specified key, use: 
+```bash
+ssh -p 2222 username@server_address remove-key <ID#>
+```
+**Note**: Thid will not remove the active key.
 
 ## Reference Output
 ### User Registration
