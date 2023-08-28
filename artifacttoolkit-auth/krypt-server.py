@@ -260,9 +260,7 @@ class Server(paramiko.ServerInterface):
         if get_user_validated_status(self.username, user_data):
             response = "Keys:\n"
             current_key_base64 = self.key.get_base64()
-            for index, key in enumerate(
-                user_data[self.username]["public_keys"]
-            ):
+            for index, key in enumerate(user_data[self.username]["public_keys"]):
                 if key == current_key_base64:
                     response += f"\t{index} (active) {key}\n"
                 else:
@@ -324,10 +322,7 @@ class Server(paramiko.ServerInterface):
             try:
                 key_id = int(key_id)
                 current_key_base64 = self.key.get_base64()
-                if (
-                    user_data[self.username]["public_keys"][key_id]
-                    == current_key_base64
-                ):
+                if (user_data[self.username]["public_keys"][key_id] == current_key_base64):
                     response = "Cannot remove the active public key.\n"
                 else:
                     del user_data[self.username]["public_keys"][key_id]
