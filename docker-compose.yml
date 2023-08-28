@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: artifacttoolkit-auth
     ports:
-      - "${SSH_PORT}:22"
+      - "${SSH_PORT}:2222"
     volumes:
       - auth-opt:/opt
 
