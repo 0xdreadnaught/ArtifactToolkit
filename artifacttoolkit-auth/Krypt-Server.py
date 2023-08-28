@@ -73,14 +73,10 @@ def verify_user_key(username, key, user_data):
     if username in user_data and "public_keys" in user_data[username]:
         for stored_key_base64 in user_data[username]["public_keys"]:
             try:
-                stored_key_data = decodebytes(
-                    stored_key_base64.encode("utf-8")
-                )
+                stored_key_data = decodebytes(stored_key_base64.encode("utf-8"))
                 stored_key = RSAKey(data=stored_key_data)
                 if stored_key == key:
-                    log_message(
-                        "OK", f"{username} JSON key verification passed"
-                    )
+                    log_message("OK", f"{username} JSON key verification passed")
                     return True
             except Exception as exception:
                 log_message(
@@ -112,9 +108,7 @@ def handle_channel(transport, server):
     """Deny all channel requests."""
     channel = transport.accept()
     if channel is None:
-        log_message(
-            "WARN", f"Potential password auth from {CLIENT_ADDRESS[0]}"
-        )
+        log_message("WARN", f"Potential password auth from {CLIENT_ADDRESS[0]}")
     else:
         server.event.wait(10)
         channel.close()
@@ -150,9 +144,7 @@ class Server(paramiko.ServerInterface):
         if not self.logged:
             self.username = username
             self.key = key
-            log_message(
-                "INFO", f"{username} connected from {CLIENT_ADDRESS[0]}"
-            )
+            log_message("INFO", f"{username} connected from {CLIENT_ADDRESS[0]}")
             log_message("OK", f"{username} key validation passed")
             self.logged = True
         return paramiko.AUTH_SUCCESSFUL
@@ -186,17 +178,13 @@ class Server(paramiko.ServerInterface):
                 key_id = cmd_parts[1]
                 self.handle_remove_key(channel, key_id)
             else:
-                log_message(
-                    "FAIL", f"{self.username} issued remove-key without an ID."
-                )
+                log_message("FAIL", f"{self.username} issued remove-key without an ID.")
                 channel.send("No key ID provided for remove-key command.\n")
         elif cmd_str in command_handlers:
             command_handlers[cmd_str](channel)
         else:
             channel.send(f"{cmd_str} command not found.\n")
-            log_message(
-                "FAIL", f"Invalid command from {self.username}: {cmd_str}"
-            )
+            log_message("FAIL", f"Invalid command from {self.username}: {cmd_str}")
 
         self.event.set()
         return True
@@ -206,9 +194,7 @@ class Server(paramiko.ServerInterface):
         if self.username in user_data:
             update_last_seen(self.username, user_data)
             if get_user_validated_status(self.username, user_data):
-                log_message(
-                    "INFO", f"{self.username} sent a redundant login request."
-                )
+                log_message("INFO", f"{self.username} sent a redundant login request.")
                 response = "You are already logged in.\n"
             else:
                 if verify_user_key(self.username, self.key, user_data):
@@ -243,9 +229,7 @@ class Server(paramiko.ServerInterface):
             for user in user_data.keys():
                 response += f"\t{user}\n"
             response += "\n"
-            log_message(
-                "OK", f"Command executed by {self.username}: list-users"
-            )
+            log_message("OK", f"Command executed by {self.username}: list-users")
         else:
             response = "No."
             log_message(
@@ -266,9 +250,7 @@ class Server(paramiko.ServerInterface):
                 else:
                     response += f"\t{index} {key}\n"
             response += "\n"
-            log_message(
-                "OK", f"Command executed by {self.username}: list-keys"
-            )
+            log_message("OK", f"Command executed by {self.username}: list-keys")
         else:
             response = "No."
             log_message(
@@ -286,9 +268,7 @@ class Server(paramiko.ServerInterface):
             user_data[self.username]["public_keys"] = [current_key_base64]
             update_json_file(user_data)
             response = "Keys pruned, only the current key is retained.\n"
-            log_message(
-                "OK", f"Command executed by {self.username}: prune-keys"
-            )
+            log_message("OK", f"Command executed by {self.username}: prune-keys")
         else:
             response = "No."
             log_message(
@@ -304,9 +284,7 @@ class Server(paramiko.ServerInterface):
             user_data[self.username]["public_keys"] = [""]
             update_json_file(user_data)
             response = "Keys purged.\n"
-            log_message(
-                "OK", f"Command executed by {self.username}: purge-keys"
-            )
+            log_message("OK", f"Command executed by {self.username}: purge-keys")
         else:
             response = "No."
             log_message(
@@ -322,7 +300,10 @@ class Server(paramiko.ServerInterface):
             try:
                 key_id = int(key_id)
                 current_key_base64 = self.key.get_base64()
-                if user_data[self.username]["public_keys"][key_id] == current_key_base64:
+                if (
+                    user_data[self.username]["public_keys"][key_id]
+                    == current_key_base64
+                ):
                     response = "Cannot remove the active public key.\n"
                 else:
                     del user_data[self.username]["public_keys"][key_id]
