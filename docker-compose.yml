@@ -1,5 +1,9 @@
 version: '3.8'
 services:
+
+################
+#     Auth     #
+################
   artifacttoolkit-auth:
     networks:
       - atk-net
@@ -13,6 +17,9 @@ services:
     volumes:
       - auth-opt:/opt
 
+################
+#    Nessus    #
+################
   artifacttoolkit-nessus:
     networks:
       - atk-net
@@ -21,14 +28,15 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     container_name: atk-nessus
-    #ports:
-      #- "8834:8834"
     environment:
       - USERNAME=${NESSUS_USER}
       - PASSWORD=${NESSUS_PASSWORD}
     volumes:
       - nessus-data:/opt/nessus
 
+################
+#    Ingest    #
+################
   artifacttoolkit-ingest:
     networks:
       - atk-net
@@ -47,11 +55,78 @@ services:
     volumes:
       - ingest-data:/var/www
 
+###############
+#  Bloohound  #
+###############
+  app-db:
+    networks:
+      - atk-net
+    image: docker.io/library/postgres:13.2
+    container_name: atk-bh-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-bloodhound}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bloodhoundcommunityedition}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-bloodhound}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-bloodhound} -d ${POSTGRES_DATABASE:-bloodhound} -h 127.0.0.1 -p 5432"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  graph-db:
+    networks:
+      - atk-net
+    image: docker.io/library/neo4j:4.4
+    container_name: atk-bh-graph-db
+    environment:
+      - NEO4J_AUTH=${NEO4J_AUTH:-neo4j/bloodhoundcommunityedition}
+      - NEO4J_dbms_allow__upgrade=${NEO4J_ALLOW_UPGRADE:-true}
+    volumes:
+      - ${NEO4J_DATA_MOUNT:-neo4j-data}:/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -O /dev/null -q http://localhost:${NEO4J_WEB_PORT:-7474} || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  bloodhound:
+    networks:
+      - atk-net
+    image: docker.io/specterops/bloodhound:${BLOODHOUND_TAG:-latest}
+    container_name: atk-bh
+    environment:
+      - bhe_disable_cypher_qc=${bhe_disable_cypher_qc:-false}
+    #ports:
+    #  - ${BLOODHOUND_PORT:-8081}:8080
+    depends_on:
+      app-db:
+        condition: service_healthy
+      graph-db:
+        condition: service_healthy
+
+###############
+# Docker Svcs #
+###############
 volumes:
   auth-opt:
   nessus-data:
   ingest-data:
+  neo4j-data:
+  postgres-data:
 
 networks:
   atk-net:
     driver: bridge
+
