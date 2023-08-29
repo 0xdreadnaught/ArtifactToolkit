@@ -7,6 +7,13 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Reference Output](#reference-output)
+- [Components](#components)
+  - [ATK-Auth](#artifacttoolkit-auth)
+  - [ATK-Ingest](#artifacttoolkit-ingest)
+  - [ATK-Nessus](#artifacttoolkit-nessus)
+  - [ATK-BH](#artifacttoolkit-bloodhound)
+  - [ATK-BH-DB](#artifacttoolkit-bloodhound-database)
+  - [ATK-BH-Graph-DB](#artifacttoolkit-bloodhound-graph-database)
 - [Development](#development)
 
 ## Overview
@@ -15,6 +22,7 @@ Artifact Toolkit is a collection of Dockerized services focusing on secure shari
 ## Features
 - PKI-based authentication.
 - JSON data storage for user metadata.
+- SSL Ingest proxy.
 - Nessus scanner for standalone use or SC integration (requires license).
 - Extensible architecture for future services.
 
@@ -102,6 +110,25 @@ ssh -p 2222 username@server_address remove-key <ID#>
 ![show malformed command](imgs/atk-malformed-cmd.png)
 
 
+## Components
+
+### ArtifactToolkit-Auth
+This container runs the Krypt-Server, The authentication gateway for ATK. While piggybacking off SSH, it does not rely on the user to be known to the underlying SSH service. Nor does it allow the user to access a session or channel at any time.
+
+### ArtifactToolkit-Ingest
+This container runs an Nginx reverse proxy for data ingestion. It acts as an intermediary for requests from clients seeking resources from other services. SSL certificates are generated as needed, the settings for the certificate can be altered in openssl.cnf.
+
+### ArtifactToolkit-Nessus
+This container runs the Nessus scanner, which can be used for standalone scanning or integrated into a Security Center (SC). A license is required for full functionality.
+
+### ArtifactToolkit-Bloodhound
+This is the main Bloodhound Community Edition container. The temp password is displayed during the build process. 
+
+### ArtifactToolkit-Bloodhound-Database
+This container runs a PostgreSQL backend for Bloodhound's domain data.
+
+### ArtifactToolkit-Bloodhound-Graph-Database
+This container runs the Neo4j backend for bloodhound graphing capabilities.
+
 ## Development
-The auth container is done for now. Next step is a storage solution. NFS/SMB aren't worth the time given the security/ease of use desired, SFTP is clunky ... I'll think of something ...
-The Nessus container is done, but needs to be put behind a proxy.
+Debating on adding in automated Nessus configuration modes using the `.env` and Selenium-headless. Still need a note solution. May stick with Joplin just for ease of use. Though it does run the risk of file lock conflicts if poor note structuring is used. Obsidian is deceptive trash. HedgeDoc is probably the best solution, but it's raw markdown editing, which slows down engagements. 
