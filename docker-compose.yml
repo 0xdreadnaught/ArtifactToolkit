@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
     container_name: atk-ingest
     environment:
-      - INGEST_HTTPS=${INGEST_HTTPS:-8080}
+      - INGEST_HTTPS=${INGEST_HTTPS:-8443}
     ports:
       - "${INGEST_HTTP:-8080}:80"
       - "${INGEST_HTTPS:-8443}:443"
@@ -146,9 +146,9 @@ services:
       KC_PROXY: ${KC_PROXY:-edge}
       KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
       PROXY_ADDRESS_FORWARDING: true
-#    ports:
-#      - ${KC_HTTP:-18080}:8080
-#      - ${KC_HTTPS:-18443}:8443
+    ports:
+      - ${KC_HTTP:-18080}:8080
+      - ${KC_HTTPS:-18443}:8443
     depends_on:
       - postgres
 
