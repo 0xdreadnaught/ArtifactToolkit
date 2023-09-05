@@ -115,6 +115,45 @@ services:
         condition: service_healthy
 
 ###############
+#  Keycloak   #
+###############
+  postgres:
+    networks:
+      - atk-net
+    image: postgres:latest
+    container_name: atk-kc-db
+    volumes:
+      - atk-cloak-psql-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${KC_PSQL_DB:-keycloak}
+      POSTGRES_USER: ${KC_PSQL_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KC_PSQL_PASSWORD:-password}
+
+  keycloak:
+    networks:
+      - atk-net
+    image: quay.io/keycloak/keycloak:legacy
+    container_name: atk-kc
+    environment:
+      DB_VENDOR: ${KC_DB_VENDOR:-POSTGRES}
+      DB_ADDR: ${KC_DB_ADDR:-atk-kc-db}
+      DB_DATABASE: ${KC_DB:-keycloak}
+      DB_USER: ${KC_DB_USER:-keycloak}
+      DB_SCHEMA: ${KC_DB_SCHEMA:-public}
+      DB_PASSWORD: ${KC_DB_PASSWORD:-password}
+      KEYCLOAK_USER: ${KC_USER:-admin}
+      KEYCLOAK_PASSWORD: ${KC_PASSWORD:-Pa55w0rd}
+      KC_PROXY: ${KC_PROXY:-edge}
+      KEYCLOAK_FRONTEND_URL: 'https://keycloak.atk:8443/auth'
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
+      PROXY_ADDRESS_FORWARDING: true
+    #ports:
+    #  - ${KC_HTTP:-18080}:8080
+    #  - ${KC_HTTPS:-18443}:8443
+    depends_on:
+      - postgres
+
+###############
 # Docker Svcs #
 ###############
 volumes:
@@ -123,6 +162,7 @@ volumes:
   atk-ingest-data:
   atk-bh-psql-data:
   atk-bh-neo4j-data:
+  atk-cloak-psql-data:
 
 networks:
   atk-net:
